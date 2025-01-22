@@ -30,6 +30,7 @@ const Sidebar = () => {
   };
 
   const handleLogout = () => {
+    sessionStorage.clear();
     window.location.href = "http://localhost:5173";
   };
 
