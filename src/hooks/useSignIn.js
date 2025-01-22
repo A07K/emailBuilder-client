@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useRecoilState, useSetRecoilState } from "recoil";
 import { loginAtom, registerAtom } from "../state/userState";
+import conf from "../config/index";
 
 export const useSignIn = () => {
   const [login, setLogin] = useRecoilState(loginAtom);
@@ -16,16 +17,13 @@ export const useSignIn = () => {
     setLoading(true);
 
     try {
-      const response = await fetch(
-        "https://emailbuilder-server.onrender.com/user/login",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(data),
-        }
-      );
+      const response = await fetch(`${conf.apiBaseUrl}user/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
 
       if (!response.ok) {
         throw new Error("Failed to login. Please check your credentials.");
