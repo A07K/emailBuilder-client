@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useRecoilValue, useSetRecoilState } from "recoil";
 import { templatesAtom } from "../../store/atoms/templatesAtom";
@@ -13,36 +13,76 @@ import {
   ChevronRight,
 } from "lucide-react";
 import Sidebar from "../layout/Sidebar";
+import { useTemplate } from "../../hooks/useTemplates";
 
 const TemplatesList = () => {
   const navigate = useNavigate();
-  const templates = useRecoilValue(templatesAtom);
   const setTemplates = useSetRecoilState(templatesAtom);
   const setEditorState = useSetRecoilState(editorAtom);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("all");
+  const [localTemplates, setLocalTemplates] = useState([]);
+
+  const {
+    fetchAllTemplates,
+    fetchFavoriteTemplates,
+    fetchRecentTemplates,
+    loading,
+    templateData,
+  } = useTemplate();
+
+  useEffect(() => {
+    fetchAllTemplates();
+  }, []);
+
+  useEffect(() => {
+    // Update the path to access templates based on the actual data structure
+    const templates = {
+      all: templateData?.all?.templates?.all || [],
+      favorites: templateData?.all?.templates?.favorites || [],
+      recent: templateData?.all?.templates?.recent || [],
+    };
+
+    if (Array.isArray(templates.all)) {
+      setLocalTemplates(templates.all);
+    } else {
+      setLocalTemplates([]);
+      console.warn(
+        "Template data is not in the expected format:",
+        templateData
+      );
+    }
+  }, [templateData]);
+
+  const getFilteredTemplates = () => {
+    let filtered = [...localTemplates];
+
+    try {
+      if (activeTab === "favorites") {
+        filtered = templateData?.all?.templates?.favorites || [];
+      } else if (activeTab === "recent") {
+        filtered = templateData?.all?.templates?.recent || [];
+      }
+
+      return filtered.filter((template) =>
+        template?.name?.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    } catch (error) {
+      console.error("Error filtering templates:", error);
+      return [];
+    }
+  };
+
+  // Rest of the component remains the same...
+  const filteredTemplates = getFilteredTemplates();
 
   const loadTemplate = (template) => {
     setEditorState({
       content: template.content,
       style: template.style,
     });
-    navigate(`/view/${template.id}`, { state: { template } });
+    navigate(`/view/${template._id}`, { state: { template } });
   };
-
-  const filteredTemplates = templates
-    .filter((template) =>
-      template.name.toLowerCase().includes(searchQuery.toLowerCase())
-    )
-    .filter((template) => {
-      if (activeTab === "favorites") return template.isFavorite;
-      if (activeTab === "recent") {
-        const thirtyDaysAgo = new Date();
-        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-        return new Date(template.createdAt) > thirtyDaysAgo;
-      }
-      return true;
-    });
 
   const TabButton = ({ icon: Icon, label, value }) => (
     <button
@@ -59,9 +99,9 @@ const TemplatesList = () => {
   );
 
   const toggleFavorite = (templateId) => {
-    setTemplates((prevTemplates) =>
+    setLocalTemplates((prevTemplates) =>
       prevTemplates.map((template) =>
-        template.id === templateId
+        template._id === templateId
           ? { ...template, isFavorite: !template.isFavorite }
           : template
       )
@@ -73,7 +113,6 @@ const TemplatesList = () => {
       <Sidebar />
       <div className="flex-1 min-h-screen bg-gray-50">
         <div className="max-w-7xl mx-auto p-8">
-          {/* Header Section */}
           <div className="mb-12">
             <h1 className="text-4xl font-bold text-gray-900 mb-4">Templates</h1>
             <p className="text-lg text-gray-600">
@@ -81,7 +120,6 @@ const TemplatesList = () => {
             </p>
           </div>
 
-          {/* Search and Tabs */}
           <div className="bg-white rounded-xl shadow-sm p-6 mb-8">
             <div className="relative mb-6">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
@@ -101,11 +139,10 @@ const TemplatesList = () => {
             </div>
           </div>
 
-          {/* Templates Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredTemplates.map((template) => (
               <div
-                key={template.id}
+                key={template._id}
                 className="group bg-white rounded-xl shadow-sm border border-gray-200 p-6 transition-all hover:border-primary hover:shadow-md"
               >
                 <div className="flex justify-between items-start mb-4">
@@ -116,7 +153,7 @@ const TemplatesList = () => {
                     className="text-gray-400 hover:text-yellow-400 transition-colors"
                     onClick={(e) => {
                       e.stopPropagation();
-                      toggleFavorite(template.id);
+                      toggleFavorite(template._id);
                     }}
                   >
                     {template.isFavorite ? (

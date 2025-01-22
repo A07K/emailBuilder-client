@@ -1,12 +1,10 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useRecoilState, useSetRecoilState } from "recoil";
+import { useSetRecoilState } from "recoil";
 import { loginAtom, registerAtom } from "../state/userState";
 import conf from "../config/index";
 
 export const useSignIn = () => {
-  const [login, setLogin] = useRecoilState(loginAtom);
-  const [register, setRegister] = useRecoilState(registerAtom);
   const navigate = useNavigate();
   const setLoginState = useSetRecoilState(loginAtom);
   const setRegisterState = useSetRecoilState(registerAtom);
