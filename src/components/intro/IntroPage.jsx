@@ -134,7 +134,7 @@ const IntroPage = () => {
                 <input
                   type="email"
                   className="mt-1 w-full rounded-lg border-gray-300 px-4 py-2 text-gray-800 focus:border-primary focus:ring-primary"
-                  placeholder="Enter your email"
+                  placeholder="Enter your email - aditya@gmail.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
@@ -147,7 +147,7 @@ const IntroPage = () => {
                 <input
                   type="password"
                   className="mt-1 w-full rounded-lg border-gray-300 px-4 py-2 text-gray-800 focus:border-primary focus:ring-primary"
-                  placeholder="Enter your password"
+                  placeholder="Enter your password - password123"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
