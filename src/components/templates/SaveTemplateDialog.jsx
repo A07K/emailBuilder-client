@@ -1,16 +1,49 @@
 import React from "react";
-import { Dialog, DialogContent, DialogTitle } from "@radix-ui/react-dialog"; // No DialogHeader in Radix UI
+import { Dialog, DialogContent, DialogTitle } from "@radix-ui/react-dialog";
 import { Star, StarOff } from "lucide-react";
+import { useTemplate } from "../../hooks/useTemplates";
 
 const SaveTemplateDialog = ({
   isOpen,
   onClose,
-  onSave,
   templateName,
   setTemplateName,
   isFavorite,
   setIsFavorite,
+  blocks, // Add blocks as a prop
 }) => {
+  const { createTemplate } = useTemplate();
+  console.log("Blocks:", blocks);
+
+  const handleSaveTemplate = async () => {
+    try {
+      // Prepare the template data according to the schema
+      const templateData = {
+        name: templateName,
+        content: blocks.map(({ id, ...block }) => ({
+          ...block,
+          style: Object.fromEntries(
+            Object.entries(block.style).filter(
+              ([_, value]) => value !== undefined
+            )
+          ),
+        })),
+        isFavorite: isFavorite,
+      };
+
+      // Call the createTemplate hook
+      await createTemplate(templateData);
+
+      // Close the dialog
+      onClose();
+
+      // Optional: Add toast or success notification
+    } catch (error) {
+      console.error("Failed to save template:", error);
+      // Optional: Add error toast or notification
+    }
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
@@ -57,8 +90,9 @@ const SaveTemplateDialog = ({
               Cancel
             </button>
             <button
-              onClick={onSave}
+              onClick={handleSaveTemplate}
               className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
+              disabled={!templateName} // Optionally disable if no name is entered
             >
               Save Template
             </button>

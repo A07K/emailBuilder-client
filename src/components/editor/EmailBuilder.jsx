@@ -4,6 +4,7 @@ import Sidebar from "../layout/Sidebar";
 import { useSetRecoilState } from "recoil";
 import { templatesAtom } from "../../store/atoms/templatesAtom";
 import SaveTemplateDialog from "../templates/SaveTemplateDialog";
+import { useTemplate } from "../../hooks/useTemplates";
 
 const EmailBuilderEditor = () => {
   const [blocks, setBlocks] = useState([
@@ -65,6 +66,7 @@ const EmailBuilderEditor = () => {
   const [templateName, setTemplateName] = useState("");
   const [isFavorite, setIsFavorite] = useState(false);
   const setTemplates = useSetRecoilState(templatesAtom);
+  const { createTemplate } = useTemplate();
 
   const [globalStyles, setGlobalStyles] = useState({
     backgroundColor: "#ffffff",
@@ -356,20 +358,26 @@ const EmailBuilderEditor = () => {
     );
   };
 
-  const handleSaveTemplate = () => {
-    const newTemplate = {
-      id: Date.now().toString(),
-      name: templateName,
-      content: blocks,
-      style: globalStyles,
-      isFavorite,
-      createdAt: new Date().toISOString(),
-    };
+  const handleSaveTemplate = async () => {
+    try {
+      const templateData = {
+        name: templateName,
+        content: (blocks || []).map(({ id, ...block }) => ({
+          ...block,
+          style: Object.fromEntries(
+            Object.entries(block.style).filter(
+              ([_, value]) => value !== undefined
+            )
+          ),
+        })),
+        isFavorite: isFavorite,
+      };
 
-    setTemplates((prev) => [...prev, newTemplate]);
-    setIsSaveDialogOpen(false);
-    setTemplateName("");
-    setIsFavorite(false);
+      await createTemplate(templateData);
+      onClose();
+    } catch (error) {
+      console.error("Failed to save template:", error);
+    }
   };
 
   return (
@@ -559,6 +567,7 @@ const EmailBuilderEditor = () => {
         setTemplateName={setTemplateName}
         isFavorite={isFavorite}
         setIsFavorite={setIsFavorite}
+        blocks={blocks}
       />
     </>
   );
