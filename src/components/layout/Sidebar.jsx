@@ -58,11 +58,11 @@ const Sidebar = () => {
           <div className="flex flex-col space-y-6 p-4">
             {[
               { icon: <Layout size={24} />, label: "Create", path: "/builder" },
-              {
+              /*{
                 icon: <Image size={24} />,
                 label: "Examples",
                 path: "/examples",
-              },
+              },*/
               {
                 icon: <Type size={24} />,
                 label: "Templates",
@@ -73,7 +73,7 @@ const Sidebar = () => {
                 label: "View",
                 path: "/view",
               },
-              { icon: <Share size={24} />, label: "Export", path: "/export" },
+              /*{ icon: <Share size={24} />, label: "Export", path: "/export" },*/
             ].map((item, index) => (
               <div
                 key={index}

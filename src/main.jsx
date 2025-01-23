@@ -9,16 +9,16 @@ createRoot(document.getElementById("root")).render(
   /*<React.StrictMode> */
   <RecoilRoot>
     <ToastContainer
-      position="top-right"
+      position="bottom-center"
       autoClose={3000}
-      hideProgressBar={false}
+      hideProgressBar={true}
       newestOnTop
       closeOnClick
       rtl={false}
       pauseOnFocusLoss
       draggable
       pauseOnHover
-      theme="light"
+      theme="colored"
     />
     <App />
   </RecoilRoot>
