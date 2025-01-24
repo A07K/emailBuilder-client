@@ -10,14 +10,14 @@ const SaveTemplateDialog = ({
   setTemplateName,
   isFavorite,
   setIsFavorite,
-  blocks, // Add blocks as a prop
+  blocks,
+  templateId,
 }) => {
-  const { createTemplate } = useTemplate();
+  const { createTemplate, updateTemplate } = useTemplate();
   console.log("Blocks:", blocks);
 
   const handleSaveTemplate = async () => {
     try {
-      // Prepare the template data according to the schema
       const templateData = {
         name: templateName,
         content: blocks.map(({ id, ...block }) => ({
@@ -31,16 +31,17 @@ const SaveTemplateDialog = ({
         isFavorite: isFavorite,
       };
 
-      // Call the createTemplate hook
-      await createTemplate(templateData);
+      // Check if templateId exists, if so, update; otherwise, create
+      if (templateId) {
+        await updateTemplate(templateId, templateData);
+      } else {
+        await createTemplate(templateData);
+      }
 
       // Close the dialog
       onClose();
-
-      // Optional: Add toast or success notification
     } catch (error) {
       console.error("Failed to save template:", error);
-      // Optional: Add error toast or notification
     }
   };
 

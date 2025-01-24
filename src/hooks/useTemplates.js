@@ -3,11 +3,13 @@ import { useState } from "react";
 import { templateAtom, templateByIdAtom } from "../state/templateState";
 import conf from "../config/index";
 import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 
 export const useTemplate = () => {
   const [templateData, setTemplateData] = useRecoilState(templateAtom);
   const [templateById, setTemplateById] = useRecoilState(templateByIdAtom);
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   // Helper function to get the access token from sessionStorae
   const getAccessToken = () => {
@@ -140,10 +142,75 @@ export const useTemplate = () => {
         theme: "colored", // Use colored theme for better contrast
         className: "custom-toast-success", // Add custom class for styling
       });
+      navigate("/templates");
+
       return newTemplate;
     } catch (error) {
       console.error("Error creating template:", error);
       toast.error("Failed to create template.", {
+        position: "bottom-center",
+        autoClose: 3000,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: true,
+        theme: "colored",
+        className: "custom-toast-error",
+      });
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateTemplate = async (id, updatedTemplate) => {
+    const accessToken = getAccessToken();
+    if (!accessToken) {
+      console.error("Access token not found");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await fetch(
+        `${conf.apiBaseUrl}api/updateTemplate/${id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+          },
+          body: JSON.stringify(updatedTemplate),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to update template");
+      }
+
+      const updatedData = await response.json();
+      if (templateById && templateById._id === id) {
+        setTemplateById((prev) => ({
+          ...prev,
+          template: updatedData,
+        }));
+      }
+
+      toast.success("Template updated successfully!", {
+        position: "bottom-center",
+        autoClose: 3000,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: true,
+        theme: "colored",
+        className: "custom-toast-success",
+      });
+
+      navigate("/templates");
+
+      return updatedData;
+    } catch (error) {
+      console.error("Error updating template:", error);
+      toast.error("Failed to update template.", {
         position: "bottom-center",
         autoClose: 3000,
         hideProgressBar: true,
@@ -165,5 +232,6 @@ export const useTemplate = () => {
     createTemplate,
     templateById,
     fetchTemplateById,
+    updateTemplate,
   };
 };

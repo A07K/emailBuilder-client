@@ -31,7 +31,7 @@ const Sidebar = () => {
 
   const handleLogout = () => {
     sessionStorage.clear();
-    window.location.href = "http://localhost:5173";
+    window.location.href = "https://mail-forge.netlify.app/";
   };
 
   return (
@@ -68,11 +68,11 @@ const Sidebar = () => {
                 label: "Templates",
                 path: "/templates",
               },
-              {
+              /*{
                 icon: <ListOrdered size={24} />,
                 label: "View",
                 path: "/view",
-              },
+              },*/
               /*{ icon: <Share size={24} />, label: "Export", path: "/export" },*/
             ].map((item, index) => (
               <div

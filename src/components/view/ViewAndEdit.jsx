@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Plus, Image } from "lucide-react";
 import Sidebar from "../layout/Sidebar";
@@ -12,11 +12,13 @@ const ViewAndEdit = () => {
   const [selectedBlockId, setSelectedBlockId] = useState(null);
   const [templateData, setTemplateData] = useState(null);
 
+  const memoizedFetchTemplateById = useCallback(fetchTemplateById, []);
+
   useEffect(() => {
     if (templateId) {
-      fetchTemplateById(templateId);
+      memoizedFetchTemplateById(templateId); // Use memoized version
     }
-  }, [templateId, fetchTemplateById]);
+  }, [templateId, memoizedFetchTemplateById]);
 
   useEffect(() => {
     if (templateById) {
@@ -32,6 +34,16 @@ const ViewAndEdit = () => {
       navigate("/templates");
     }
   };
+
+  const handleSaveChanges = () => {
+    if (!templateId) {
+      console.error("Template ID is undefined or invalid!");
+      return;
+    }
+    navigate(`/builder/${templateId}`);
+  };
+
+  console.log("Template ID in ViewAndEdit:", templateId);
 
   const renderBlock = (block) => {
     switch (block.type) {
@@ -107,7 +119,20 @@ const ViewAndEdit = () => {
                   {isEditing ? "Cancel" : "Back"}
                 </button>
                 <button
-                  onClick={() => setIsEditing(!isEditing)}
+                  onClick={() => {
+                    if (isEditing) {
+                      // Save changes (optional: validate before redirect)
+                      handleSaveChanges();
+                    } else {
+                      navigate(`/builder`, {
+                        state: {
+                          id: templateId, // Pass the templateId
+                          templateData, // Pass the template details
+                        },
+                      });
+                    }
+                    setIsEditing(!isEditing);
+                  }}
                   className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
                 >
                   {isEditing ? "Save" : "Edit"}
