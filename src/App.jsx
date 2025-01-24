@@ -40,7 +40,7 @@ const App = () => {
             }
           />
           <Route
-            path="/view/*"
+            path="/view/:id"
             element={
               <div
                 className={`flex transition-all duration-300 ease-in-out ${

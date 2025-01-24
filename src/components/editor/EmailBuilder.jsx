@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Plus } from "lucide-react";
 import Sidebar from "../layout/Sidebar";
 import { useSetRecoilState } from "recoil";
 import { templatesAtom } from "../../store/atoms/templatesAtom";
 import SaveTemplateDialog from "../templates/SaveTemplateDialog";
 import { useTemplate } from "../../hooks/useTemplates";
+import { useLocation } from "react-router-dom";
 
 const EmailBuilderEditor = () => {
   const [blocks, setBlocks] = useState([
@@ -66,7 +67,35 @@ const EmailBuilderEditor = () => {
   const [templateName, setTemplateName] = useState("");
   const [isFavorite, setIsFavorite] = useState(false);
   const setTemplates = useSetRecoilState(templatesAtom);
-  const { createTemplate } = useTemplate();
+  const { createTemplate, updateTemplate } = useTemplate();
+
+  const location = useLocation();
+  const { id: templateId, templateData } = location.state || {}; // Safely destructure state
+
+  useEffect(() => {
+    console.log("Template ID in EmailBuilder:", templateId);
+    console.log("Template Details in EmailBuilder:", templateData);
+    if (templateData) {
+      // Reset blocks with the template's content
+      setBlocks(
+        templateData.content.map((block, index) => ({
+          ...block,
+          id: String(index + 1), // Ensure unique IDs
+        }))
+      );
+
+      // Update global styles if template has specific global settings
+      if (templateData.globalStyles) {
+        setGlobalStyles(templateData.globalStyles);
+      }
+
+      // Optional: Set template name if you want to pre-fill the save dialog
+      setTemplateName(templateData.name || "");
+      setIsFavorite(templateData.isFavorite || false);
+    }
+
+    // Use templateId and templateData for updating or displaying the template
+  }, [templateId, templateData]);
 
   const [globalStyles, setGlobalStyles] = useState({
     backgroundColor: "#ffffff",
@@ -373,8 +402,17 @@ const EmailBuilderEditor = () => {
         isFavorite: isFavorite,
       };
 
-      await createTemplate(templateData);
-      onClose();
+      // Check if templateId exists (from location.state)
+      if (templateId) {
+        // If templateId exists, update the existing template
+        await updateTemplate(templateId, templateData);
+      } else {
+        // If no templateId, create a new template
+        await createTemplate(templateData);
+      }
+
+      // Close the save dialog
+      setIsSaveDialogOpen(false);
     } catch (error) {
       console.error("Failed to save template:", error);
     }
@@ -568,6 +606,7 @@ const EmailBuilderEditor = () => {
         isFavorite={isFavorite}
         setIsFavorite={setIsFavorite}
         blocks={blocks}
+        templateId={templateId}
       />
     </>
   );
