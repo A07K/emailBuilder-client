@@ -1,14 +1,15 @@
 import { useRecoilState } from "recoil";
 import { useState } from "react";
-import { templateAtom } from "../state/templateState";
+import { templateAtom, templateByIdAtom } from "../state/templateState";
 import conf from "../config/index";
 import { toast } from "react-toastify";
 
 export const useTemplate = () => {
   const [templateData, setTemplateData] = useRecoilState(templateAtom);
+  const [templateById, setTemplateById] = useRecoilState(templateByIdAtom);
   const [loading, setLoading] = useState(false);
 
-  // Helper function to get the access token from sessionStorage
+  // Helper function to get the access token from sessionStorae
   const getAccessToken = () => {
     return sessionStorage.getItem("accessToken");
   };
@@ -42,6 +43,57 @@ export const useTemplate = () => {
       }));
     } catch (error) {
       console.error("Error fetching templates:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchTemplateById = async (id) => {
+    const accessToken = getAccessToken();
+    if (!accessToken) {
+      console.error("Access token not found");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await fetch(`${conf.apiBaseUrl}api/templateById/${id}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch template by ID");
+      }
+
+      const data = await response.json();
+      setTemplateById(data);
+
+      toast.success("Template loaded successfully!", {
+        position: "bottom-center",
+        autoClose: 3000,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: true,
+        theme: "colored",
+        className: "custom-toast-success",
+      });
+
+      return data;
+    } catch (error) {
+      console.error("Error fetching template by ID:", error);
+      toast.error("Failed to fetch template by ID.", {
+        position: "bottom-center",
+        autoClose: 3000,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: true,
+        theme: "colored",
+        className: "custom-toast-error",
+      });
     } finally {
       setLoading(false);
     }
@@ -106,82 +158,12 @@ export const useTemplate = () => {
     }
   };
 
-  /*const fetchFavoriteTemplates = async () => {
-    const accessToken = getAccessToken();
-    if (!accessToken) {
-      console.error("Access token not found");
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const response = await fetch(
-        `${conf.apiBaseUrl}api/templates/favorites`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${accessToken}`,
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch favorite templates");
-      }
-
-      const data = await response.json();
-      setTemplateData((prev) => ({
-        ...prev,
-        favorites: data,
-      }));
-    } catch (error) {
-      console.error("Error fetching favorite templates:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Fetch recent templates
-  const fetchRecentTemplates = async () => {
-    const accessToken = getAccessToken();
-    if (!accessToken) {
-      console.error("Access token not found");
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const response = await fetch(`${conf.apiBaseUrl}api/templates/recent`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch recent templates");
-      }
-
-      const data = await response.json();
-      setTemplateData((prev) => ({
-        ...prev,
-        recent: data,
-      }));
-    } catch (error) {
-      console.error("Error fetching recent templates:", error);
-    } finally {
-      setLoading(false);
-    }
-  };*/
-
   return {
     fetchAllTemplates,
-    //fetchFavoriteTemplates,
-    //fetchRecentTemplates,
     loading,
     templateData,
     createTemplate,
+    templateById,
+    fetchTemplateById,
   };
 };

@@ -23,13 +23,8 @@ const TemplatesList = () => {
   const [activeTab, setActiveTab] = useState("all");
   const [localTemplates, setLocalTemplates] = useState([]);
 
-  const {
-    fetchAllTemplates,
-    fetchFavoriteTemplates,
-    fetchRecentTemplates,
-    loading,
-    templateData,
-  } = useTemplate();
+  const { fetchAllTemplates, loading, templateData, fetchTemplateById } =
+    useTemplate();
 
   useEffect(() => {
     fetchAllTemplates();
@@ -76,12 +71,15 @@ const TemplatesList = () => {
   // Rest of the component remains the same...
   const filteredTemplates = getFilteredTemplates();
 
-  const loadTemplate = (template) => {
-    setEditorState({
-      content: template.content,
-      style: template.style,
-    });
-    navigate(`/view/${template._id}`, { state: { template } });
+  const loadTemplate = async (templateId) => {
+    try {
+      const template = await fetchTemplateById(templateId);
+      if (template) {
+        navigate(`/view/${templateId}`, { state: { template } });
+      }
+    } catch (error) {
+      console.error("Failed to load template:", error);
+    }
   };
 
   const TabButton = ({ icon: Icon, label, value }) => (
@@ -170,7 +168,7 @@ const TemplatesList = () => {
                 </p>
 
                 <button
-                  onClick={() => loadTemplate(template)}
+                  onClick={() => loadTemplate(template._id)}
                   className="flex items-center text-primary hover:text-primary/90 font-medium text-sm"
                 >
                   View Template

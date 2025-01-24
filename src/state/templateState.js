@@ -8,8 +8,8 @@ export const templateAtom = atom({
   effects_UNSTABLE: [persistAtom],
 });
 
-export const createTemplateAtom = atom({
-  key: "createTemplaet",
+export const templateByIdAtom = atom({
+  key: "templatebyidd",
   default: null,
   effects_UNSTABLE: [persistAtom],
 });
