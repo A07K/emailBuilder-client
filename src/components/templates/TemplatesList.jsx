@@ -11,6 +11,8 @@ import {
   Clock,
   Archive,
   ChevronRight,
+  XCircle,
+  X,
 } from "lucide-react";
 import Sidebar from "../layout/Sidebar";
 import { useTemplate } from "../../hooks/useTemplates";
@@ -23,15 +25,19 @@ const TemplatesList = () => {
   const [activeTab, setActiveTab] = useState("all");
   const [localTemplates, setLocalTemplates] = useState([]);
 
-  const { fetchAllTemplates, loading, templateData, fetchTemplateById } =
-    useTemplate();
+  const {
+    fetchAllTemplates,
+    loading,
+    templateData,
+    fetchTemplateById,
+    deleteTemplate,
+  } = useTemplate();
 
   useEffect(() => {
     fetchAllTemplates();
   }, []);
 
   useEffect(() => {
-    // Update the path to access templates based on the actual data structure
     const templates = {
       all: templateData?.all?.templates?.all || [],
       favorites: templateData?.all?.templates?.favorites || [],
@@ -48,6 +54,14 @@ const TemplatesList = () => {
       );
     }
   }, [templateData]);
+
+  const handleDelete = async (templateId) => {
+    try {
+      await deleteTemplate(templateId);
+    } catch (error) {
+      console.error("Delete failed:", error);
+    }
+  };
 
   const getFilteredTemplates = () => {
     let filtered = [...localTemplates];
@@ -141,8 +155,20 @@ const TemplatesList = () => {
             {filteredTemplates.map((template) => (
               <div
                 key={template._id}
-                className="group bg-white rounded-xl shadow-sm border border-gray-200 p-6 transition-all hover:border-primary hover:shadow-md"
+                className="group relative bg-white rounded-xl shadow-sm border border-gray-200 p-6 transition-all hover:border-primary hover:shadow-md"
               >
+                {/* Delete Button - Appears on hover */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDelete(template._id);
+                  }}
+                  className="absolute -top-2 -right-2 hidden group-hover:flex items-center justify-center w-8 h-8 bg-red-500 hover:bg-red-600 rounded-full shadow-lg transition-all"
+                  title="Delete template"
+                >
+                  <X className="h-4 w-4 text-white" />
+                </button>
+
                 <div className="flex justify-between items-start mb-4">
                   <h3 className="font-semibold text-lg text-gray-900">
                     {template.name}
