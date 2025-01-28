@@ -225,6 +225,78 @@ export const useTemplate = () => {
     }
   };
 
+  const deleteTemplate = async (id) => {
+    const accessToken = getAccessToken();
+    if (!accessToken) {
+      console.error("Access token not found");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await fetch(`${conf.apiBaseUrl}api/templates/${id}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to delete template");
+      }
+
+      const result = await response.json();
+
+      // Update local state with the new counts from the API response
+      setTemplateData((prev) => ({
+        ...prev,
+        all: {
+          ...prev.all,
+          templates: {
+            ...prev.all.templates,
+            all: prev.all.templates.all.filter(
+              (template) => template._id !== id
+            ),
+          },
+          count: result.user,
+        },
+      }));
+
+      // Clear templateById if it's the deleted template
+      if (templateById?._id === id) {
+        setTemplateById(null);
+      }
+
+      toast.success("Template deleted successfully!", {
+        position: "bottom-center",
+        autoClose: 3000,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: true,
+        theme: "colored",
+        className: "custom-toast-success",
+      });
+      await fetchAllTemplates();
+
+      return true;
+    } catch (error) {
+      console.error("Error deleting template:", error);
+      toast.error("Failed to delete template.", {
+        position: "bottom-center",
+        autoClose: 3000,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: true,
+        theme: "colored",
+        className: "custom-toast-error",
+      });
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return {
     fetchAllTemplates,
     loading,
@@ -233,5 +305,6 @@ export const useTemplate = () => {
     templateById,
     fetchTemplateById,
     updateTemplate,
+    deleteTemplate,
   };
 };
