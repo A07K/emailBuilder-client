@@ -52,7 +52,7 @@ const IntroPage = () => {
           {/* Actions */}
           <div className="flex flex-col items-center space-y-6">
             <Link
-              to="/builder"
+              onClick={() => setShowRegisterModal(true)}
               className="group border border-gray-800 flex items-center space-x-2 rounded-full bg-primary px-8 py-4 text-lg font-medium text-white transition-all hover:bg-primary/90"
             >
               <span className="text-gray-900">Start Building</span>
